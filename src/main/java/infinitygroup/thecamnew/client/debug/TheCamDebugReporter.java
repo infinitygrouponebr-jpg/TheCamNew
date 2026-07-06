@@ -1,0 +1,44 @@
+package infinitygroup.thecamnew.client.debug;
+
+import infinitygroup.thecamnew.client.input.TheCamClientState;
+import infinitygroup.thecamnew.network.TheCamAimSyncPayload;
+import infinitygroup.thecamnew.common.aim.TheCamAimStateStore;
+import java.util.Locale;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
+
+public final class TheCamDebugReporter {
+    private TheCamDebugReporter() {}
+
+    public static void show(LocalPlayer player, TheCamAimSyncPayload payload) {
+        if (player == null || payload == null || !TheCamClientState.isDebugEnabled()) {
+            return;
+        }
+
+        long gameTime = player.level().getGameTime();
+        long lastShown = TheCamClientState.getLastDebugUpdateGameTime();
+        if (gameTime - lastShown < 10L) {
+            return;
+        }
+
+        TheCamClientState.setLastDebugUpdateGameTime(gameTime);
+        long serverAge = TheCamAimStateStore.getAgeTicks(player, gameTime);
+        player.displayClientMessage(Component.literal(buildMessage(payload, serverAge)), true);
+    }
+
+    public static String buildMessage(TheCamAimSyncPayload payload, long serverAgeTicks) {
+        String age = serverAgeTicks >= 0L ? Long.toString(serverAgeTicks) : "n/a";
+        return String.format(Locale.ROOT,
+                "The Cam | active=%s hit=%s origin=(%s) direction=(%s) target=(%s) serverAge=%s",
+                payload.active(),
+                payload.hasAimTarget(),
+                formatVec(payload.aimOrigin().x, payload.aimOrigin().y, payload.aimOrigin().z),
+                formatVec(payload.aimDirection().x, payload.aimDirection().y, payload.aimDirection().z),
+                formatVec(payload.aimTarget().x, payload.aimTarget().y, payload.aimTarget().z),
+                age);
+    }
+
+    private static String formatVec(double x, double y, double z) {
+        return String.format(Locale.ROOT, "%.2f, %.2f, %.2f", x, y, z);
+    }
+}
