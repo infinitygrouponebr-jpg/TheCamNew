@@ -43,6 +43,18 @@ public final class TheCamClientConfig {
             .comment("How quickly the camera returns from collision.")
             .defineInRange("cameraCollisionSmoothness", 0.20D, 0.0D, 1.0D);
 
+    public static final ModConfigSpec.DoubleValue CAMERA_MIN_PLAYABLE_DISTANCE = BUILDER
+            .comment("Minimum stable camera distance in tight spaces.")
+            .defineInRange("cameraMinPlayableDistance", 1.25D, 0.3D, 4.0D);
+
+    public static final ModConfigSpec.DoubleValue CAMERA_TIGHT_SPACE_SIDE_SCALE = BUILDER
+            .comment("Side offset multiplier used in tight spaces.")
+            .defineInRange("cameraTightSpaceSideScale", 0.35D, 0.0D, 1.0D);
+
+    public static final ModConfigSpec.DoubleValue CAMERA_TIGHT_SPACE_HEIGHT = BUILDER
+            .comment("Height offset used in tight spaces.")
+            .defineInRange("cameraTightSpaceHeight", 0.35D, -1.0D, 2.0D);
+
     // Aim
     public static final ModConfigSpec.DoubleValue AIM_RANGE = BUILDER
             .comment("Maximum client-side aim range.")

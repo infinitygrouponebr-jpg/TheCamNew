@@ -41,7 +41,10 @@ public final class TheCamClientEvents {
             minecraft.options.setCameraType(CameraType.THIRD_PERSON_BACK);
         }
 
-        CameraPose pose = TheCamCameraController.computePose(player, 1.0F, false);
+        CameraPose pose = TheCamCameraController.getLastRenderedPose();
+        if (pose == null) {
+            pose = TheCamCameraController.computePose(player, 1.0F, false);
+        }
         TheCamAimSyncPayload payload = TheCamAimCalculator.compute(player, pose);
         TheCamNetworking.sendAimPayload(payload);
         TheCamDebugReporter.show(player, payload);

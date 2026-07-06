@@ -1,5 +1,4 @@
 {
-  "itemGroup.the_cam_new": "Example Mod Tab",
-  "block.the_cam_new.example_block": "Example Block",
-  "item.the_cam_new.example_item": "Example Item"
+  "key.the_cam_new.toggle": "Toggle The Cam",
+  "key.the_cam_new.cycle_mode": "Cycle Camera Mode"
 }

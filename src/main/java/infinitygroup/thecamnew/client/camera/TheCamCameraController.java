@@ -4,15 +4,23 @@ import infinitygroup.thecamnew.client.config.TheCamClientConfig;
 import infinitygroup.thecamnew.mixin.CameraAccessor;
 import net.minecraft.client.Camera;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 
 public final class TheCamCameraController {
+    private static final double VISUAL_FOCUS_VERTICAL_OFFSET = 0.12D;
+    private static final double COLLISION_ANCHOR_VERTICAL_OFFSET = 0.20D;
+    private static final double TIGHT_SPACE_ANCHOR_VERTICAL_OFFSET = 0.15D;
+    private static final double MOVEMENT_RESET_DISTANCE_SQR = 64.0D;
+    private static final double MIN_VECTOR_LENGTH_SQR = 1.0E-8D;
+
     private static Vec3 lastCameraPosition;
     private static Vec3 lastEyePosition;
-    private static double lastCollisionDistance = Double.NaN;
+    private static CameraPose lastRenderedPose;
 
     private TheCamCameraController() {}
 
@@ -35,60 +43,66 @@ public final class TheCamCameraController {
             cameraBack = cameraBack.scale(-1.0D);
         }
 
-        Vec3 focus = eyePosition
+        Vec3 visualFocus = eyePosition
                 .add(horizontalForward.scale(TheCamClientConfig.CAMERA_FORWARD_FOCUS_OFFSET.get()))
-                .add(0.0D, 0.12D, 0.0D);
+                .add(0.0D, VISUAL_FOCUS_VERTICAL_OFFSET, 0.0D);
 
-        double targetCollisionDistance = TheCamClientConfig.CAMERA_DISTANCE.get();
-        Vec3 desiredPosition = focus
-                .add(cameraBack.scale(targetCollisionDistance))
+        Vec3 desiredPosition = visualFocus
+                .add(cameraBack.scale(TheCamClientConfig.CAMERA_DISTANCE.get()))
                 .add(right.scale(TheCamClientConfig.CAMERA_SIDE_OFFSET.get()))
                 .add(0.0D, TheCamClientConfig.CAMERA_HEIGHT.get(), 0.0D);
 
-        if (desiredPosition.subtract(focus).dot(horizontalForward) > 0.0D) {
-            desiredPosition = focus
+        if (desiredPosition.subtract(visualFocus).dot(horizontalForward) > 0.0D) {
+            desiredPosition = visualFocus
                     .add(horizontalForward.scale(-TheCamClientConfig.CAMERA_DISTANCE.get()))
                     .add(right.scale(TheCamClientConfig.CAMERA_SIDE_OFFSET.get()))
                     .add(0.0D, TheCamClientConfig.CAMERA_HEIGHT.get(), 0.0D);
         }
 
+        Vec3 collisionAnchor = eyePosition.add(0.0D, COLLISION_ANCHOR_VERTICAL_OFFSET, 0.0D);
+        CollisionResult collisionResult = new CollisionResult(desiredPosition, false, false);
         if (TheCamClientConfig.CAMERA_COLLISION.get()) {
-            Vec3 collisionPosition = clipCamera(player, focus, desiredPosition);
-            targetCollisionDistance = focus.distanceTo(collisionPosition);
+            collisionResult = resolveCollision(player, collisionAnchor, desiredPosition);
         }
 
-        double collisionDistance = targetCollisionDistance;
-        if (updateSmoothingState) {
-            if (Double.isNaN(lastCollisionDistance)) {
-                lastCollisionDistance = targetCollisionDistance;
-            } else {
-                lastCollisionDistance = Mth.lerp(TheCamClientConfig.CAMERA_COLLISION_SMOOTHNESS.get(), lastCollisionDistance, targetCollisionDistance);
-            }
-            collisionDistance = lastCollisionDistance;
+        Vec3 finalTargetPosition = collisionResult.position();
+        if (isTooCloseOrCeilingBlocked(collisionAnchor, finalTargetPosition, collisionResult.ceilingBlocked())) {
+            finalTargetPosition = computeTightSpaceFallback(player, eyePosition, horizontalForward, right, cameraBack);
         }
 
-        Vec3 smoothedPosition = focus
-                .add(cameraBack.scale(collisionDistance))
-                .add(right.scale(TheCamClientConfig.CAMERA_SIDE_OFFSET.get()))
-                .add(0.0D, TheCamClientConfig.CAMERA_HEIGHT.get(), 0.0D);
-
-        if (TheCamClientConfig.CAMERA_COLLISION.get()) {
-            smoothedPosition = clipCamera(player, focus, smoothedPosition);
-        }
-
-        double smoothness = TheCamClientConfig.CAMERA_SMOOTHNESS.get();
-        Vec3 smoothed = smoothedPosition;
+        Vec3 smoothed = finalTargetPosition;
         if (updateSmoothingState && lastCameraPosition != null) {
-            smoothed = lastCameraPosition.lerp(smoothedPosition, smoothness);
+            double smoothingFactor = collisionResult.blocked()
+                    ? TheCamClientConfig.CAMERA_COLLISION_SMOOTHNESS.get()
+                    : TheCamClientConfig.CAMERA_SMOOTHNESS.get();
+            smoothed = lastCameraPosition.lerp(finalTargetPosition, Mth.clamp(smoothingFactor, 0.0D, 1.0D));
         }
+
+        if (TheCamClientConfig.CAMERA_COLLISION.get()) {
+            smoothed = clipCameraPosition(player, collisionAnchor, smoothed);
+        }
+
+        Vec3 direction = visualFocus.subtract(smoothed);
+        if (direction.lengthSqr() <= MIN_VECTOR_LENGTH_SQR) {
+            direction = horizontalForward;
+        } else {
+            direction = direction.normalize();
+        }
+
+        float[] cameraAngles = rotationFromDirection(direction);
+        CameraPose pose = new CameraPose(smoothed, direction, visualFocus, cameraAngles[0], cameraAngles[1]);
+
         if (updateSmoothingState) {
             lastCameraPosition = smoothed;
             lastEyePosition = eyePosition;
+            lastRenderedPose = pose;
         }
 
-        Vec3 direction = focus.subtract(smoothed).normalize();
-        float[] cameraAngles = rotationFromDirection(direction);
-        return new CameraPose(smoothed, direction, focus, cameraAngles[0], cameraAngles[1]);
+        return pose;
+    }
+
+    public static CameraPose getLastRenderedPose() {
+        return lastRenderedPose;
     }
 
     public static void applyToCamera(Camera camera, CameraPose pose) {
@@ -98,14 +112,30 @@ public final class TheCamCameraController {
     public static void reset() {
         lastCameraPosition = null;
         lastEyePosition = null;
-        lastCollisionDistance = Double.NaN;
+        lastRenderedPose = null;
     }
 
-    private static Vec3 clipCamera(LocalPlayer player, Vec3 focus, Vec3 desired) {
-        HitResult hit = player.level().clip(new ClipContext(focus, desired, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
+    private static CollisionResult resolveCollision(LocalPlayer player, Vec3 from, Vec3 desired) {
+        BlockHitResult blockHit = clipBlock(player, from, desired);
+        if (blockHit.getType() != HitResult.Type.BLOCK) {
+            return new CollisionResult(desired, false, false);
+        }
+
+        Vec3 travel = desired.subtract(from);
+        if (travel.lengthSqr() <= MIN_VECTOR_LENGTH_SQR) {
+            return new CollisionResult(desired, true, blockHit.getDirection() == Direction.DOWN);
+        }
+
+        Vec3 direction = travel.normalize();
+        Vec3 corrected = blockHit.getLocation().subtract(direction.scale(TheCamClientConfig.CAMERA_COLLISION_PADDING.get()));
+        return new CollisionResult(corrected, true, blockHit.getDirection() == Direction.DOWN);
+    }
+
+    private static Vec3 clipCameraPosition(LocalPlayer player, Vec3 from, Vec3 desired) {
+        BlockHitResult hit = clipBlock(player, from, desired);
         if (hit.getType() == HitResult.Type.BLOCK) {
-            Vec3 travel = desired.subtract(focus);
-            if (travel.lengthSqr() > 1.0E-8D) {
+            Vec3 travel = desired.subtract(from);
+            if (travel.lengthSqr() > MIN_VECTOR_LENGTH_SQR) {
                 Vec3 direction = travel.normalize();
                 return hit.getLocation().subtract(direction.scale(TheCamClientConfig.CAMERA_COLLISION_PADDING.get()));
             }
@@ -113,19 +143,39 @@ public final class TheCamCameraController {
         return desired;
     }
 
+    private static Vec3 computeTightSpaceFallback(LocalPlayer player, Vec3 eyePosition, Vec3 horizontalForward, Vec3 right, Vec3 cameraBack) {
+        double minDistance = TheCamClientConfig.CAMERA_MIN_PLAYABLE_DISTANCE.get();
+        double side = TheCamClientConfig.CAMERA_SIDE_OFFSET.get() * TheCamClientConfig.CAMERA_TIGHT_SPACE_SIDE_SCALE.get();
+        double height = TheCamClientConfig.CAMERA_TIGHT_SPACE_HEIGHT.get();
+
+        Vec3 anchor = eyePosition.add(0.0D, TIGHT_SPACE_ANCHOR_VERTICAL_OFFSET, 0.0D);
+        Vec3 fallback = anchor
+                .add(cameraBack.scale(minDistance))
+                .add(right.scale(side))
+                .add(0.0D, height, 0.0D);
+
+        return clipCameraPosition(player, anchor, fallback);
+    }
+
+    private static boolean isTooCloseOrCeilingBlocked(Vec3 collisionAnchor, Vec3 targetPosition, boolean ceilingBlocked) {
+        if (ceilingBlocked) {
+            return true;
+        }
+        return collisionAnchor.distanceTo(targetPosition) < TheCamClientConfig.CAMERA_MIN_PLAYABLE_DISTANCE.get();
+    }
+
+    private static BlockHitResult clipBlock(LocalPlayer player, Vec3 from, Vec3 desired) {
+        return player.level().clip(new ClipContext(
+                from,
+                desired,
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
+                player));
+    }
+
     private static Vec3 rightVector(Vec3 horizontalForward) {
         Vec3 forward = horizontalForward.normalize();
         return new Vec3(forward.z, 0.0D, -forward.x).normalize();
-    }
-
-    private static Vec3 directionFromRotation(float pitchDegrees, float yawDegrees) {
-        float pitch = pitchDegrees * ((float) Math.PI / 180.0F);
-        float yaw = -yawDegrees * ((float) Math.PI / 180.0F) - (float) Math.PI;
-        float cosPitch = Mth.cos(pitch);
-        float sinPitch = Mth.sin(pitch);
-        float cosYaw = Mth.cos(yaw);
-        float sinYaw = Mth.sin(yaw);
-        return new Vec3((double) (sinYaw * cosPitch), (double) sinPitch, (double) (cosYaw * cosPitch));
     }
 
     private static float[] rotationFromDirection(Vec3 direction) {
@@ -142,13 +192,13 @@ public final class TheCamCameraController {
         if (lastEyePosition == null) {
             return false;
         }
-        return lastEyePosition.distanceToSqr(eyePosition) > 64.0D;
+        return lastEyePosition.distanceToSqr(eyePosition) > MOVEMENT_RESET_DISTANCE_SQR;
     }
 
     private static Vec3 getHorizontalForward(LocalPlayer player, float partialTick) {
         Vec3 view = player.getViewVector(partialTick);
         Vec3 horizontal = new Vec3(view.x, 0.0D, view.z);
-        if (horizontal.lengthSqr() <= 1.0E-8D) {
+        if (horizontal.lengthSqr() <= MIN_VECTOR_LENGTH_SQR) {
             float yaw = player.getYRot();
             double rad = Math.toRadians(-yaw);
             horizontal = new Vec3(-Math.sin(rad), 0.0D, Math.cos(rad));
@@ -157,4 +207,6 @@ public final class TheCamCameraController {
     }
 
     public record CameraPose(Vec3 origin, Vec3 direction, Vec3 focusPoint, float yaw, float pitch) {}
+
+    private record CollisionResult(Vec3 position, boolean blocked, boolean ceilingBlocked) {}
 }

@@ -4,6 +4,7 @@
   "package": "infinitygroup.thecamnew.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "CameraAccessor"
   ],
   "client": [
   ],
