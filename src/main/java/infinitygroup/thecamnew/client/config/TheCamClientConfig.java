@@ -61,6 +61,10 @@ public final class TheCamClientConfig {
             .defineInRange("aimRange", 128.0D, 1.0D, 256.0D);
 
     // Visual
+    public static final ModConfigSpec.BooleanValue SHOW_CROSSHAIR = BUILDER
+            .comment("Show the The Cam New centered crosshair overlay.")
+            .define("showCrosshair", true);
+
     public static final ModConfigSpec.BooleanValue DEBUG_AIM = BUILDER
             .comment("Show client debug aim info.")
             .define("debugAim", false);
