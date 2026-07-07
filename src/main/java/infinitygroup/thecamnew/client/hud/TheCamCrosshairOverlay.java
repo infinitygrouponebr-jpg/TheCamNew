@@ -1,6 +1,7 @@
 package infinitygroup.thecamnew.client.hud;
 
 import infinitygroup.thecamnew.client.config.TheCamClientConfig;
+import infinitygroup.thecamnew.client.aim.TheCamFreeAimState;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -24,6 +25,10 @@ public final class TheCamCrosshairOverlay {
 
         int centerX = guiGraphics.guiWidth() / 2;
         int centerY = guiGraphics.guiHeight() / 2;
+        if (TheCamFreeAimState.isActive()) {
+            centerX = TheCamFreeAimState.cursorScreenX(guiGraphics.guiWidth());
+            centerY = TheCamFreeAimState.cursorScreenY(guiGraphics.guiHeight());
+        }
 
         drawCrosshair(guiGraphics, centerX + SHADOW_OFFSET, centerY + SHADOW_OFFSET, SHADOW_COLOR);
         drawCrosshair(guiGraphics, centerX, centerY, CROSSHAIR_COLOR);

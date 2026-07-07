@@ -89,6 +89,30 @@ public final class TheCamClientConfig {
             .comment("Forward focus offset used for combat framing.")
             .defineInRange("combatCameraForwardFocusOffset", 2.4D, -8.0D, 16.0D);
 
+    public static final ModConfigSpec.BooleanValue FREE_AIM_ENABLED = BUILDER
+            .comment("Enable free aim cursor movement for relevant tools and weapons.")
+            .define("freeAimEnabled", true);
+
+    public static final ModConfigSpec.BooleanValue FREE_AIM_CAPTURE_MOUSE = BUILDER
+            .comment("Capture gameplay mouse movement into the virtual free aim cursor instead of vanilla turning.")
+            .define("freeAimCaptureMouse", true);
+
+    public static final ModConfigSpec.DoubleValue FREE_AIM_MOUSE_SENSITIVITY = BUILDER
+            .comment("Virtual free aim cursor sensitivity multiplier.")
+            .defineInRange("freeAimMouseSensitivity", 1.0D, 0.01D, 10.0D);
+
+    public static final ModConfigSpec.DoubleValue FREE_AIM_MAX_SCREEN_X = BUILDER
+            .comment("Maximum horizontal free aim cursor range in normalized screen space.")
+            .defineInRange("freeAimMaxScreenX", 0.85D, 0.0D, 1.0D);
+
+    public static final ModConfigSpec.DoubleValue FREE_AIM_MAX_SCREEN_Y = BUILDER
+            .comment("Maximum vertical free aim cursor range in normalized screen space.")
+            .defineInRange("freeAimMaxScreenY", 0.70D, 0.0D, 1.0D);
+
+    public static final ModConfigSpec.BooleanValue FREE_AIM_RECENTER_WHEN_INACTIVE = BUILDER
+            .comment("Recenter the virtual free aim cursor when free aim becomes inactive.")
+            .define("freeAimRecenterWhenInactive", true);
+
     public static final ModConfigSpec.BooleanValue DEBUG_AIM = BUILDER
             .comment("Show client debug aim info.")
             .define("debugAim", false);

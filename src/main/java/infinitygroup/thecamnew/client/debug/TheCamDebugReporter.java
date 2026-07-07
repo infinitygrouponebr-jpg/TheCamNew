@@ -1,8 +1,9 @@
 package infinitygroup.thecamnew.client.debug;
 
+import infinitygroup.thecamnew.client.aim.TheCamFreeAimState;
 import infinitygroup.thecamnew.client.input.TheCamClientState;
-import infinitygroup.thecamnew.network.TheCamAimSyncPayload;
 import infinitygroup.thecamnew.common.aim.TheCamAimStateStore;
+import infinitygroup.thecamnew.network.TheCamAimSyncPayload;
 import java.util.Locale;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
@@ -29,9 +30,12 @@ public final class TheCamDebugReporter {
     public static String buildMessage(TheCamAimSyncPayload payload, long serverAgeTicks) {
         String age = serverAgeTicks >= 0L ? Long.toString(serverAgeTicks) : "n/a";
         return String.format(Locale.ROOT,
-                "The Cam | active=%s hit=%s origin=(%s) direction=(%s) target=(%s) serverAge=%s",
+                "The Cam | active=%s hit=%s freeAim=%s cursor=(%.2f, %.2f) origin=(%s) direction=(%s) target=(%s) serverAge=%s",
                 payload.active(),
                 payload.hasAimTarget(),
+                TheCamFreeAimState.isActive(),
+                TheCamFreeAimState.cursorNormX(),
+                TheCamFreeAimState.cursorNormY(),
                 formatVec(payload.aimOrigin().x, payload.aimOrigin().y, payload.aimOrigin().z),
                 formatVec(payload.aimDirection().x, payload.aimDirection().y, payload.aimDirection().z),
                 formatVec(payload.aimTarget().x, payload.aimTarget().y, payload.aimTarget().z),

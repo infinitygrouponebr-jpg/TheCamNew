@@ -1,8 +1,8 @@
 package infinitygroup.thecamnew.client;
 
 import infinitygroup.thecamnew.TheCamNew;
-import infinitygroup.thecamnew.client.aim.TheCamAimController;
 import infinitygroup.thecamnew.client.aim.TheCamClientAimState;
+import infinitygroup.thecamnew.client.aim.TheCamFreeAimState;
 import infinitygroup.thecamnew.client.camera.TheCamCameraController;
 import infinitygroup.thecamnew.client.camera.TheCamCameraController.CameraPose;
 import infinitygroup.thecamnew.client.debug.TheCamDebugReporter;
@@ -32,6 +32,7 @@ public final class TheCamClientEvents {
 
         Minecraft minecraft = Minecraft.getInstance();
         LocalPlayer player = minecraft.player;
+        TheCamFreeAimState.tick(minecraft);
 
         if (player == null || player.level() == null) {
             TheCamClientAimState.clear();
@@ -48,10 +49,11 @@ public final class TheCamClientEvents {
         if (pose == null) {
             pose = TheCamCameraController.computePose(player, 1.0F, false);
         }
-        TheCamAimSyncPayload payload = TheCamAimCalculator.compute(player, pose);
+        TheCamAimSyncPayload payload = TheCamFreeAimState.isActive()
+                ? TheCamAimCalculator.compute(player, pose, TheCamFreeAimState.cursorNormX(), TheCamFreeAimState.cursorNormY())
+                : TheCamAimCalculator.compute(player, pose);
         TheCamClientAimState.update(payload);
         TheCamNetworking.sendAimPayload(payload);
-        TheCamAimController.alignPlayerToAim(player);
         TheCamDebugReporter.show(player, payload);
     }
 

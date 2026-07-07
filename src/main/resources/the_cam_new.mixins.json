@@ -7,6 +7,7 @@
     "CameraAccessor"
   ],
   "client": [
+    "client.MouseHandlerFreeAimMixin"
   ],
   "injectors": {
     "defaultRequire": 1
