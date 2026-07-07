@@ -56,8 +56,19 @@ public final class TheCamFreeAimState {
         double width = Math.max(1.0D, lastScreenWidth);
         double height = Math.max(1.0D, lastScreenHeight);
 
-        cursorNormX += (deltaX / (width * 0.5D)) * sensitivity;
-        cursorNormY += (deltaY / (height * 0.5D)) * sensitivity;
+        double xDelta = (deltaX / (width * 0.5D)) * sensitivity;
+        double yDelta = (deltaY / (height * 0.5D)) * sensitivity;
+
+        if (TheCamClientConfig.FREE_AIM_INVERT_X.get()) {
+            xDelta = -xDelta;
+        }
+
+        if (TheCamClientConfig.FREE_AIM_INVERT_Y.get()) {
+            yDelta = -yDelta;
+        }
+
+        cursorNormX += xDelta;
+        cursorNormY += yDelta;
         clampCursor();
     }
 

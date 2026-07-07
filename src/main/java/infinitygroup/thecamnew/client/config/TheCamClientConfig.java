@@ -101,6 +101,14 @@ public final class TheCamClientConfig {
             .comment("Virtual free aim cursor sensitivity multiplier.")
             .defineInRange("freeAimMouseSensitivity", 1.0D, 0.01D, 10.0D);
 
+    public static final ModConfigSpec.BooleanValue FREE_AIM_INVERT_X = BUILDER
+            .comment("Invert horizontal free aim cursor movement.")
+            .define("freeAimInvertX", true);
+
+    public static final ModConfigSpec.BooleanValue FREE_AIM_INVERT_Y = BUILDER
+            .comment("Invert vertical free aim cursor movement.")
+            .define("freeAimInvertY", false);
+
     public static final ModConfigSpec.DoubleValue FREE_AIM_MAX_SCREEN_X = BUILDER
             .comment("Maximum horizontal free aim cursor range in normalized screen space.")
             .defineInRange("freeAimMaxScreenX", 0.85D, 0.0D, 1.0D);
@@ -112,6 +120,26 @@ public final class TheCamClientConfig {
     public static final ModConfigSpec.BooleanValue FREE_AIM_RECENTER_WHEN_INACTIVE = BUILDER
             .comment("Recenter the virtual free aim cursor when free aim becomes inactive.")
             .define("freeAimRecenterWhenInactive", true);
+
+    public static final ModConfigSpec.BooleanValue PLAYER_AIM_FOLLOW_ENABLED = BUILDER
+            .comment("Rotate the player smoothly toward the current free aim target.")
+            .define("playerAimFollowEnabled", true);
+
+    public static final ModConfigSpec.DoubleValue PLAYER_AIM_FOLLOW_YAW_SPEED = BUILDER
+            .comment("Maximum yaw delta per tick before smoothing for player aim follow.")
+            .defineInRange("playerAimFollowYawSpeed", 10.0D, 0.1D, 180.0D);
+
+    public static final ModConfigSpec.DoubleValue PLAYER_AIM_FOLLOW_PITCH_SPEED = BUILDER
+            .comment("Maximum pitch delta per tick before smoothing for player aim follow.")
+            .defineInRange("playerAimFollowPitchSpeed", 8.0D, 0.1D, 180.0D);
+
+    public static final ModConfigSpec.DoubleValue PLAYER_AIM_FOLLOW_SMOOTHING = BUILDER
+            .comment("Smoothing factor applied to player aim follow yaw and pitch.")
+            .defineInRange("playerAimFollowSmoothing", 0.35D, 0.01D, 1.0D);
+
+    public static final ModConfigSpec.DoubleValue PLAYER_AIM_FOLLOW_MAX_DELTA_PER_TICK = BUILDER
+            .comment("Absolute maximum yaw/pitch delta allowed per tick before speed clamps for player aim follow.")
+            .defineInRange("playerAimFollowMaxDeltaPerTick", 35.0D, 0.1D, 180.0D);
 
     public static final ModConfigSpec.BooleanValue DEBUG_AIM = BUILDER
             .comment("Show client debug aim info.")
