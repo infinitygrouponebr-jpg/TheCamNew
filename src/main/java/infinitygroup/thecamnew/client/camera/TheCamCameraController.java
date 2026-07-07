@@ -1,6 +1,7 @@
 package infinitygroup.thecamnew.client.camera;
 
 import infinitygroup.thecamnew.client.config.TheCamClientConfig;
+import infinitygroup.thecamnew.client.hud.TheCamCrosshairContext;
 import infinitygroup.thecamnew.mixin.CameraAccessor;
 import net.minecraft.client.Camera;
 import net.minecraft.client.player.LocalPlayer;
@@ -43,20 +44,28 @@ public final class TheCamCameraController {
             cameraBack = cameraBack.scale(-1.0D);
         }
 
+        boolean combatFraming = TheCamCrosshairContext.shouldUseCombatFraming(player);
+        double cameraDistance = combatFraming ? TheCamClientConfig.COMBAT_CAMERA_DISTANCE.get() : TheCamClientConfig.CAMERA_DISTANCE.get();
+        double cameraHeight = combatFraming ? TheCamClientConfig.COMBAT_CAMERA_HEIGHT.get() : TheCamClientConfig.CAMERA_HEIGHT.get();
+        double cameraSideOffset = combatFraming ? TheCamClientConfig.COMBAT_CAMERA_SIDE_OFFSET.get() : TheCamClientConfig.CAMERA_SIDE_OFFSET.get();
+        double cameraForwardFocusOffset = combatFraming
+                ? TheCamClientConfig.COMBAT_CAMERA_FORWARD_FOCUS_OFFSET.get()
+                : TheCamClientConfig.CAMERA_FORWARD_FOCUS_OFFSET.get();
+
         Vec3 visualFocus = eyePosition
-                .add(horizontalForward.scale(TheCamClientConfig.CAMERA_FORWARD_FOCUS_OFFSET.get()))
+                .add(horizontalForward.scale(cameraForwardFocusOffset))
                 .add(0.0D, VISUAL_FOCUS_VERTICAL_OFFSET, 0.0D);
 
         Vec3 desiredPosition = visualFocus
-                .add(cameraBack.scale(TheCamClientConfig.CAMERA_DISTANCE.get()))
-                .add(right.scale(TheCamClientConfig.CAMERA_SIDE_OFFSET.get()))
-                .add(0.0D, TheCamClientConfig.CAMERA_HEIGHT.get(), 0.0D);
+                .add(cameraBack.scale(cameraDistance))
+                .add(right.scale(cameraSideOffset))
+                .add(0.0D, cameraHeight, 0.0D);
 
         if (desiredPosition.subtract(visualFocus).dot(horizontalForward) > 0.0D) {
             desiredPosition = visualFocus
-                    .add(horizontalForward.scale(-TheCamClientConfig.CAMERA_DISTANCE.get()))
-                    .add(right.scale(TheCamClientConfig.CAMERA_SIDE_OFFSET.get()))
-                    .add(0.0D, TheCamClientConfig.CAMERA_HEIGHT.get(), 0.0D);
+                    .add(horizontalForward.scale(-cameraDistance))
+                    .add(right.scale(cameraSideOffset))
+                    .add(0.0D, cameraHeight, 0.0D);
         }
 
         Vec3 collisionAnchor = eyePosition.add(0.0D, COLLISION_ANCHOR_VERTICAL_OFFSET, 0.0D);
@@ -67,7 +76,7 @@ public final class TheCamCameraController {
 
         Vec3 finalTargetPosition = collisionResult.position();
         if (isTooCloseOrCeilingBlocked(collisionAnchor, finalTargetPosition, collisionResult.ceilingBlocked())) {
-            finalTargetPosition = computeTightSpaceFallback(player, eyePosition, horizontalForward, right, cameraBack);
+            finalTargetPosition = computeTightSpaceFallback(player, eyePosition, horizontalForward, right, cameraBack, cameraSideOffset);
         }
 
         Vec3 smoothed = finalTargetPosition;
@@ -143,9 +152,9 @@ public final class TheCamCameraController {
         return desired;
     }
 
-    private static Vec3 computeTightSpaceFallback(LocalPlayer player, Vec3 eyePosition, Vec3 horizontalForward, Vec3 right, Vec3 cameraBack) {
+    private static Vec3 computeTightSpaceFallback(LocalPlayer player, Vec3 eyePosition, Vec3 horizontalForward, Vec3 right, Vec3 cameraBack, double cameraSideOffset) {
         double minDistance = TheCamClientConfig.CAMERA_MIN_PLAYABLE_DISTANCE.get();
-        double side = TheCamClientConfig.CAMERA_SIDE_OFFSET.get() * TheCamClientConfig.CAMERA_TIGHT_SPACE_SIDE_SCALE.get();
+        double side = cameraSideOffset * TheCamClientConfig.CAMERA_TIGHT_SPACE_SIDE_SCALE.get();
         double height = TheCamClientConfig.CAMERA_TIGHT_SPACE_HEIGHT.get();
 
         Vec3 anchor = eyePosition.add(0.0D, TIGHT_SPACE_ANCHOR_VERTICAL_OFFSET, 0.0D);

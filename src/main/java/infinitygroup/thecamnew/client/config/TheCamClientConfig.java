@@ -65,6 +65,30 @@ public final class TheCamClientConfig {
             .comment("Show the The Cam New centered crosshair overlay.")
             .define("showCrosshair", true);
 
+    public static final ModConfigSpec.BooleanValue CROSSHAIR_ONLY_WITH_TOOL_OR_WEAPON = BUILDER
+            .comment("Only show the centered crosshair when holding a relevant tool or weapon in the main hand.")
+            .define("crosshairOnlyWithToolOrWeapon", true);
+
+    public static final ModConfigSpec.BooleanValue COMBAT_FRAMING_WHEN_HOLDING_TOOL_OR_WEAPON = BUILDER
+            .comment("Apply combat camera framing when holding a relevant tool or weapon in the main hand.")
+            .define("combatFramingWhenHoldingToolOrWeapon", true);
+
+    public static final ModConfigSpec.DoubleValue COMBAT_CAMERA_DISTANCE = BUILDER
+            .comment("Third-person camera distance used for combat framing.")
+            .defineInRange("combatCameraDistance", 3.3D, 0.0D, 32.0D);
+
+    public static final ModConfigSpec.DoubleValue COMBAT_CAMERA_HEIGHT = BUILDER
+            .comment("Vertical camera offset used for combat framing.")
+            .defineInRange("combatCameraHeight", 1.05D, -8.0D, 16.0D);
+
+    public static final ModConfigSpec.DoubleValue COMBAT_CAMERA_SIDE_OFFSET = BUILDER
+            .comment("Horizontal camera offset used for combat framing.")
+            .defineInRange("combatCameraSideOffset", 1.55D, -8.0D, 8.0D);
+
+    public static final ModConfigSpec.DoubleValue COMBAT_CAMERA_FORWARD_FOCUS_OFFSET = BUILDER
+            .comment("Forward focus offset used for combat framing.")
+            .defineInRange("combatCameraForwardFocusOffset", 2.4D, -8.0D, 16.0D);
+
     public static final ModConfigSpec.BooleanValue DEBUG_AIM = BUILDER
             .comment("Show client debug aim info.")
             .define("debugAim", false);
