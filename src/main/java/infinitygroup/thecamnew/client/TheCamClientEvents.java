@@ -3,7 +3,6 @@ package infinitygroup.thecamnew.client;
 import infinitygroup.thecamnew.TheCamNew;
 import infinitygroup.thecamnew.client.aim.TheCamClientAimState;
 import infinitygroup.thecamnew.client.aim.TheCamFreeAimState;
-import infinitygroup.thecamnew.client.aim.TheCamPlayerAimFollowController;
 import infinitygroup.thecamnew.client.camera.TheCamCameraController;
 import infinitygroup.thecamnew.client.camera.TheCamCameraController.CameraPose;
 import infinitygroup.thecamnew.client.debug.TheCamDebugReporter;
@@ -55,7 +54,6 @@ public final class TheCamClientEvents {
                 : TheCamAimCalculator.compute(player, pose);
         TheCamClientAimState.update(payload);
         TheCamNetworking.sendAimPayload(payload);
-        TheCamPlayerAimFollowController.tick(player);
         TheCamDebugReporter.show(player, payload);
     }
 

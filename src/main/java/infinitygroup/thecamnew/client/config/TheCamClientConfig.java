@@ -123,7 +123,7 @@ public final class TheCamClientConfig {
 
     public static final ModConfigSpec.BooleanValue PLAYER_AIM_FOLLOW_ENABLED = BUILDER
             .comment("Rotate the player smoothly toward the current free aim target.")
-            .define("playerAimFollowEnabled", true);
+            .define("playerAimFollowEnabled", false);
 
     public static final ModConfigSpec.DoubleValue PLAYER_AIM_FOLLOW_YAW_SPEED = BUILDER
             .comment("Maximum yaw delta per tick before smoothing for player aim follow.")
