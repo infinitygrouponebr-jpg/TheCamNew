@@ -38,7 +38,7 @@ public final class TheCamCrosshairContext {
                 && isRelevantHeldItem(player.getMainHandItem());
     }
 
-    private static boolean isRelevantHeldItem(ItemStack stack) {
+    public static boolean isRelevantHeldItem(ItemStack stack) {
         if (stack.isEmpty()) {
             return false;
         }

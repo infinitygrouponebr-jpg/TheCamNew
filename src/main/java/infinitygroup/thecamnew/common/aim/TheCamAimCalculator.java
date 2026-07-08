@@ -97,14 +97,14 @@ public final class TheCamAimCalculator {
 
         Vec3 forward = pose.direction().normalize();
         Vec3 worldUp = new Vec3(0.0D, 1.0D, 0.0D);
-        Vec3 right = worldUp.cross(forward);
+        Vec3 right = forward.cross(worldUp);
         if (right.lengthSqr() <= MIN_VECTOR_LENGTH_SQR || !isFinite(right)) {
             double yawRadians = Math.toRadians(pose.yaw());
-            right = new Vec3(Math.cos(yawRadians), 0.0D, Math.sin(yawRadians));
+            right = new Vec3(-Math.cos(yawRadians), 0.0D, -Math.sin(yawRadians));
         }
         right = right.normalize();
 
-        Vec3 up = forward.cross(right);
+        Vec3 up = right.cross(forward);
         if (up.lengthSqr() <= MIN_VECTOR_LENGTH_SQR || !isFinite(up)) {
             up = worldUp;
         } else {

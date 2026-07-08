@@ -99,11 +99,11 @@ public final class TheCamClientConfig {
 
     public static final ModConfigSpec.DoubleValue FREE_AIM_MOUSE_SENSITIVITY = BUILDER
             .comment("Virtual free aim cursor sensitivity multiplier.")
-            .defineInRange("freeAimMouseSensitivity", 1.0D, 0.01D, 10.0D);
+            .defineInRange("freeAimMouseSensitivity", 0.5D, 0.01D, 10.0D);
 
     public static final ModConfigSpec.BooleanValue FREE_AIM_INVERT_X = BUILDER
             .comment("Invert horizontal free aim cursor movement.")
-            .define("freeAimInvertX", true);
+            .define("freeAimInvertX", false);
 
     public static final ModConfigSpec.BooleanValue FREE_AIM_INVERT_Y = BUILDER
             .comment("Invert vertical free aim cursor movement.")

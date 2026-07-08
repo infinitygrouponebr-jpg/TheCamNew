@@ -1,6 +1,7 @@
 package infinitygroup.thecamnew.network;
 
 import infinitygroup.thecamnew.TheCamNew;
+import infinitygroup.thecamnew.common.aim.TheCamMeleeAttackHandler;
 import infinitygroup.thecamnew.common.aim.TheCamAimStateStore;
 import java.util.UUID;
 import net.minecraft.client.Minecraft;
@@ -16,7 +17,9 @@ public final class TheCamNetworking {
 
     @SubscribeEvent
     public static void registerPayloadHandlers(RegisterPayloadHandlersEvent event) {
-        event.registrar("1").playToServer(TheCamAimSyncPayload.TYPE, TheCamAimSyncPayload.STREAM_CODEC, TheCamNetworking::handleAimSync);
+        var registrar = event.registrar("1");
+        registrar.playToServer(TheCamAimSyncPayload.TYPE, TheCamAimSyncPayload.STREAM_CODEC, TheCamNetworking::handleAimSync);
+        registrar.playToServer(TheCamMeleeAttackPayload.TYPE, TheCamMeleeAttackPayload.STREAM_CODEC, TheCamNetworking::handleMeleeAttack);
     }
 
     public static void sendAimPayload(TheCamAimSyncPayload payload) {
@@ -28,6 +31,12 @@ public final class TheCamNetworking {
     public static void sendClearPayload() {
         if (Minecraft.getInstance().getConnection() != null) {
             PacketDistributor.sendToServer(TheCamAimSyncPayload.clear());
+        }
+    }
+
+    public static void sendMeleeAttackPayload() {
+        if (Minecraft.getInstance().getConnection() != null) {
+            PacketDistributor.sendToServer(new TheCamMeleeAttackPayload());
         }
     }
 
@@ -68,6 +77,23 @@ public final class TheCamNetworking {
             }
 
             TheCamAimStateStore.update(playerId, true, payload.hasAimTarget(), origin, direction, target, gameTime);
+        });
+    }
+
+    private static void handleMeleeAttack(TheCamMeleeAttackPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            Player player;
+            try {
+                player = context.player();
+            } catch (UnsupportedOperationException ex) {
+                return;
+            }
+
+            if (player == null) {
+                return;
+            }
+
+            TheCamMeleeAttackHandler.handle(player);
         });
     }
 }

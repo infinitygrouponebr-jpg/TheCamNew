@@ -1,7 +1,6 @@
 package infinitygroup.thecamnew.client.debug;
 
 import infinitygroup.thecamnew.client.aim.TheCamFreeAimState;
-import infinitygroup.thecamnew.client.aim.TheCamPlayerAimFollowController;
 import infinitygroup.thecamnew.client.input.TheCamClientState;
 import infinitygroup.thecamnew.common.aim.TheCamAimStateStore;
 import infinitygroup.thecamnew.network.TheCamAimSyncPayload;
@@ -31,19 +30,12 @@ public final class TheCamDebugReporter {
     public static String buildMessage(TheCamAimSyncPayload payload, long serverAgeTicks) {
         String age = serverAgeTicks >= 0L ? Long.toString(serverAgeTicks) : "n/a";
         return String.format(Locale.ROOT,
-                "The Cam | active=%s hit=%s freeAim=%s cursor=(%.2f, %.2f) follow=%s yawDelta=%.2f pitchDelta=%.2f desired=(%.2f, %.2f) current=(%.2f, %.2f) origin=(%s) direction=(%s) target=(%s) serverAge=%s",
+                "The Cam | active=%s hit=%s freeAim=%s playerAimFollow=disabled cursor=(%.2f, %.2f) origin=(%s) direction=(%s) target=(%s) serverAge=%s",
                 payload.active(),
                 payload.hasAimTarget(),
                 TheCamFreeAimState.isActive(),
                 TheCamFreeAimState.cursorNormX(),
                 TheCamFreeAimState.cursorNormY(),
-                TheCamPlayerAimFollowController.wasAppliedLastTick(),
-                TheCamPlayerAimFollowController.getLastYawDelta(),
-                TheCamPlayerAimFollowController.getLastPitchDelta(),
-                TheCamPlayerAimFollowController.getLastDesiredYaw(),
-                TheCamPlayerAimFollowController.getLastDesiredPitch(),
-                TheCamPlayerAimFollowController.getLastCurrentYaw(),
-                TheCamPlayerAimFollowController.getLastCurrentPitch(),
                 formatVec(payload.aimOrigin().x, payload.aimOrigin().y, payload.aimOrigin().z),
                 formatVec(payload.aimDirection().x, payload.aimDirection().y, payload.aimDirection().z),
                 formatVec(payload.aimTarget().x, payload.aimTarget().y, payload.aimTarget().z),
