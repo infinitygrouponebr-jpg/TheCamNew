@@ -27,5 +27,8 @@ public abstract class MouseHandlerFreeAimMixin {
         }
 
         TheCamFreeAimState.addMouseDelta(this.minecraft, this.accumulatedDX, this.accumulatedDY);
+        this.accumulatedDX = 0.0D;
+        this.accumulatedDY = 0.0D;
+        ci.cancel();
     }
 }

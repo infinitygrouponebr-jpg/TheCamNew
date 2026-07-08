@@ -121,6 +121,30 @@ public final class TheCamClientConfig {
             .comment("Recenter the virtual free aim cursor when free aim becomes inactive.")
             .define("freeAimRecenterWhenInactive", true);
 
+    public static final ModConfigSpec.BooleanValue VISUAL_AIM_POSE_ENABLED = BUILDER
+            .comment("Enable render-only visual aim pose toward the current free aim target.")
+            .define("visualAimPoseEnabled", true);
+
+    public static final ModConfigSpec.DoubleValue VISUAL_AIM_POSE_YAW_SPEED = BUILDER
+            .comment("Maximum render-only visual yaw delta per tick for aim pose.")
+            .defineInRange("visualAimPoseYawSpeed", 18.0D, 0.1D, 180.0D);
+
+    public static final ModConfigSpec.DoubleValue VISUAL_AIM_POSE_PITCH_SPEED = BUILDER
+            .comment("Maximum render-only visual pitch delta per tick for aim pose.")
+            .defineInRange("visualAimPosePitchSpeed", 14.0D, 0.1D, 180.0D);
+
+    public static final ModConfigSpec.DoubleValue VISUAL_AIM_POSE_SMOOTHING = BUILDER
+            .comment("Smoothing factor applied to the render-only visual aim pose.")
+            .defineInRange("visualAimPoseSmoothing", 0.45D, 0.01D, 1.0D);
+
+    public static final ModConfigSpec.DoubleValue VISUAL_AIM_POSE_MAX_PITCH = BUILDER
+            .comment("Maximum absolute render-only visual pitch applied to the player model.")
+            .defineInRange("visualAimPoseMaxPitch", 75.0D, 0.0D, 90.0D);
+
+    public static final ModConfigSpec.BooleanValue VISUAL_AIM_POSE_BODY_FOLLOW = BUILDER
+            .comment("Whether the player body visually follows the render-only aim pose yaw.")
+            .define("visualAimPoseBodyFollow", true);
+
     public static final ModConfigSpec.BooleanValue PLAYER_AIM_FOLLOW_ENABLED = BUILDER
             .comment("Rotate the player smoothly toward the current free aim target.")
             .define("playerAimFollowEnabled", false);
